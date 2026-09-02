@@ -1,0 +1,79 @@
+Linux環境でDockerを使ってPlantUML Serverを立ち上げ、VS Codeから利用できるようにする手順です。
+
+---
+
+**1. 事前準備（Dockerの確認）**
+
+Dockerがインストールされているか確認します。
+
+```bash
+docker --version
+
+```
+
+※ 未インストールの場合は、`sudo apt install docker.io`（Ubuntu系）などで事前に入れておきます。
+
+---
+
+**2. PlantUML Serverコンテナの起動**
+
+公式イメージを取得し、バックグラウンドで起動します。
+
+```bash
+sudo docker run -d \
+  --name plantuml-server \
+  --restart always \
+  -p 8080:8080 \
+  plantuml/plantuml-server:jetty
+
+```
+
+* **`-d`**: バックグラウンド実行
+* **`--name plantuml-server`**: コンテナ名の指定
+* **`--restart always`**: OS起動時に自動再起動
+* **`-p 8080:8080`**: ホストの8080ポートをコンテナにマッピング
+
+---
+
+**3. 動作確認**
+
+ブラウザまたは `curl` コマンドでアクセス確認を行います。
+
+```bash
+curl -I http://localhost:8080
+
+```
+
+`HTTP/1.1 200 OK` が返ってくれば正常に稼働しています。Webブラウザから `http://<LinuxのIPアドレス>:8080` にアクセスしても編集画面が表示されます。
+
+---
+
+**4. VS Code側の設定**
+
+VS Codeの `settings.json` に以下を追記し、レンダリング先を構築したサーバーへ切り替えます。
+
+```json
+{
+  "plantuml.render": "PlantUMLServer",
+  "plantuml.server": "http://<LinuxのIPアドレスまたはlocalhost>:8080"
+}
+
+```
+
+---
+
+**補足: Docker Composeで管理したい場合**
+
+`docker-compose.yml` ファイルを作成して管理する場合は、以下の記述で `docker compose up -d` を実行してください。
+
+```yaml
+version: '3.8'
+services:
+  plantuml-server:
+    image: plantuml/plantuml-server:jetty
+    container_name: plantuml-server
+    ports:
+      - "8080:8080"
+    restart: always
+
+```
