@@ -1,0 +1,78 @@
+先ほどのExcel向け設定を拡張し、拡張子を問わず「現在VS Codeで選択・表示しているファイルを、OSのデフォルトアプリで一発起動する」汎用的な設定手順です。
+
+---
+
+### STEP 1: 汎用起動タスク（`tasks.json`）の作成
+
+1. **`Ctrl + Shift + P`** キーでコマンドパレットを開きます。
+2. **`Tasks: Configure Task`（タスクの構成）** ➔ **`Create tasks.json file from template`** ➔ **`Others`** を選択します。
+3. 生成された `.vscode/tasks.json` を以下の内容に書き換えて保存します。
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open in Default App",
+      "type": "shell",
+      "command": "start \"\" \"${file}\"",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      }
+    }
+  ]
+}
+
+```
+
+> **ポイント:**
+> Windowsの `start` コマンドは、渡されたファイルの拡張子（`.pdf`, `.png`, `.docx`, `.psd` など）を自動判別し、OSに紐づけられたデフォルトアプリを起動します。
+
+---
+
+### STEP 2: 全ファイル対応ショートカット（`keybindings.json`）の登録
+
+1. **`Ctrl + K` ➔ `Ctrl + S**` キーで「キーボード ショートカット」を開きます。
+2. 画面右上の **「ファイルを開く (JSON)」アイコン** をクリックして `keybindings.json` を開きます。
+3. 以下の設定を追加して保存します（例: `Alt + O` で起動）。
+
+```json
+[
+  {
+    "key": "alt+o",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Open in Default App",
+    "when": "editorTextFocus || filesExplorerFocus"
+  }
+]
+
+```
+
+> **ポイント:**
+> `when` 条件を `editorTextFocus || filesExplorerFocus` に設定することで、エディタでファイルを開いているときだけでなく、**サイドバーのエクスプローラーでファイルを選択している状態**でもショートカットが有効になります。
+
+---
+
+### 使い方
+
+VS Code上でファイルを開いた状態、または左側のエクスプローラーで目的のファイルを選択した状態で **`Alt + O`** を押します。
+
+* **`.xlsx` / `.csv**` ➔ Microsoft Excel で起動
+* **`.pdf`** ➔ Acrobat Reader や Webブラウザ で起動
+* **`.png` / `.jpg**` ➔ Windows フォト や 画像ビューアー で起動
+* **`.docx`** ➔ Microsoft Word で起動
+
+どんなファイル形式であっても、OSに登録されているデフォルトアプリで開きます。
+
+---
+
+### 補足：VS Code 全体（グローバル）で使えるようにする場合
+
+上記設定を特定のプロジェクト内（`.vscode/tasks.json`）ではなく、**PC内のどのフォルダをVS Codeで開いても常に使えるようにしたい場合**は、ユーザー設定にタスクを書き込みます。
+
+1. **`Ctrl + Shift + P`** ➔ **`Tasks: Open User Tasks`（ユーザー タスクを開く）** を選択します。
+2. 開いた `tasks.json` に上記 STEP 1 のタスク定義を追加します。
+
+これで、プロジェクトごとの `.vscode` フォルダを作成することなく、どの環境でも **`Alt + O`** でデフォルトアプリを起動できるようになります。
