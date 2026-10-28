@@ -1,26 +1,26 @@
+import io
 import pandas as pd
 from robot.api import logger
 
 
-def attach_csv_to_report(csv_path: str, title: str = "CSVプレビュー"):
-    """CSVを読み込み、HTMLテーブルとしてlog.html内に埋め込む関数。
+def attach_csv_text_to_report(csv_text: str, title: str = "CSVプレビュー"):
+    """CSVの生テキスト文字列を受け取り、HTMLテーブルとしてlog.html内に埋め込む関数。
 
     Parameters:
-    - csv_path (str): 表示したいCSVファイルのパス
+    - csv_text (str): CSV形式の生データ文字列
     - title (str): レポート上に表示する見出しタイトル
     """
-    df = pd.read_csv(csv_path)
+    # 文字列をファイルのように扱って DataFrame に変換
+    df = pd.read_csv(io.StringIO(csv_text))
 
-    # pandas の DataFrame を HTML の <table> タグ形式に変換
     table_html = df.to_html(
         classes="table table-bordered", index=False, border=1
     )
 
-    # クリックで開閉できる <details> タグでラップ
     content_html = f"""
     <details open style="margin: 8px 0; border: 1px solid #ddd; padding: 8px; border-radius: 4px; background-color: #fafafa;">
         <summary style="font-weight: bold; cursor: pointer; color: #333;">
-            📄 {title} : {csv_path}
+            📄 {title}
         </summary>
         <div style="overflow-x: auto; margin-top: 6px; background-color: #fff;">
             {table_html}
@@ -28,5 +28,4 @@ def attach_csv_to_report(csv_path: str, title: str = "CSVプレビュー"):
     </details>
     """
 
-    # html=True で出力することで、Robot Framework の log.html 上で表としてレンダリングされる
     logger.info(content_html, html=True)
