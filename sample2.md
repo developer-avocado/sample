@@ -1,27 +1,31 @@
 *** Settings ***
-Library    DateTime
+Library    OperatingSystem
 Library    BuiltIn
-Library    Process
 
 *** Keywords ***
-次の3分境界に合わせて関数を有効化する
-    [Arguments]    ${app_name}    ${rg_name}    ${func_name}
+ファイルから検索文字列の前後行を取得する
+    [Arguments]    ${file_path}    ${search_word}    ${context_lines}=${10}
 
-    # 1. 現在の「分」と「秒」を取得
-    ${now} =    Get Current Date    result_format=%M:%S
-    ${min}    ${sec} =    Split String    ${now}    :
-    ${min_int} =    Convert To Integer    ${min}
-    ${sec_int} =    Convert To Integer    ${sec}
+    # 1. ファイルを読み込み、行リストへ変換
+    File Should Exist    ${file_path}    msg=指定されたファイルが存在しません: ${file_path}
+    ${content} =    Get File    ${file_path}    encoding=UTF-8
+    ${lines} =      Evaluate    $content.splitlines()
 
-    # 2. 次の3の倍数分までの残り秒数を算出
-    # (例: 50分の場合、次の51分まで 1分 = 60秒 - 経過秒)
-    ${remainder} =    Evaluate    ${min_int} % 3
-    ${wait_minutes} =    Evaluate    (3 - ${remainder}) % 3
-    ${total_wait_sec} =    Evaluate    (${wait_minutes} * 60) - ${sec_int}
-    # ちょうど0秒付近の場合は次の周期（3分後）を待つ
-    ${total_wait_sec} =    Set Variable If    ${total_wait_sec} <= 5    ${total_wait_sec + 180}    ${total_wait_sec}
+    # 2. 検索文字列が含まれる最初の行インデックス（0始まり）を探索
+    ${match_index} =    Evaluate
+    ...    next((i for i, line in enumerate($lines) if $search_word in line), None)
+    Should Not Be Equal    ${match_index}    ${None}    msg=ファイル内に [${search_word}] が見つかりませんでした
 
-    # 3. アプリ起動のオーバーヘッド（約5秒）を見越して手前まで待機
-    ${sleep_sec} =    Evaluate    ${total_wait_sec} - 5
-    Log    次の3分境界まで ${sleep_sec} 秒待機します
-    Sleep    ${sleep_sec}s
+    # 3. 前後N行のスライス範囲（開始・終了）を安全に計算
+    ${total_lines} =    Evaluate    len($lines)
+    ${start_idx} =      Evaluate    max(0, $match_index - $context_lines)
+    ${end_idx} =        Evaluate    min($total_lines, $match_index + $context_lines + 1)
+
+    # 4. 前後行を切り出して返却
+    ${result_lines} =   Evaluate    $lines[$start_idx:$end_idx]
+    
+    # ログ確認用に出力（改行で結合）
+    ${preview} =        Evaluate    "\\n".join($result_lines)
+    Log    取得したコンテキスト範囲（${start_idx + 1}行目〜${end_idx}行目）:\n${preview}
+
+    RETURN    ${result_lines}
