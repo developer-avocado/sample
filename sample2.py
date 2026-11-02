@@ -1,31 +1,29 @@
-*** Settings ***
-Library    OperatingSystem
-Library    BuiltIn
+from pathlib import Path
+from typing import List
 
-*** Keywords ***
-ファイルから検索文字列の前後行を取得する
-    [Arguments]    ${file_path}    ${search_word}    ${context_lines}=${10}
 
-    # 1. ファイルを読み込み、行リストへ変換
-    File Should Exist    ${file_path}    msg=指定されたファイルが存在しません: ${file_path}
-    ${content} =    Get File    ${file_path}    encoding=UTF-8
-    ${lines} =      Evaluate    $content.splitlines()
+def get_context_lines_around_pattern(
+    file_path: str, search_word: str, context_lines: int = 10
+) -> List[str]:
+    """ファイル内を検索し、最初に見つかった文字列の前後指定行をリストで返却する。"""
+    path = Path(file_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"ファイルが存在しません: {file_path}")
 
-    # 2. 検索文字列が含まれる最初の行インデックス（0始まり）を探索
-    ${match_index} =    Evaluate
-    ...    next((i for i, line in enumerate($lines) if $search_word in line), None)
-    Should Not Be Equal    ${match_index}    ${None}    msg=ファイル内に [${search_word}] が見つかりませんでした
+    # ファイルを行単位で読み込み
+    lines = path.read_text(encoding="utf-8").splitlines()
 
-    # 3. 前後N行のスライス範囲（開始・終了）を安全に計算
-    ${total_lines} =    Evaluate    len($lines)
-    ${start_idx} =      Evaluate    max(0, $match_index - $context_lines)
-    ${end_idx} =        Evaluate    min($total_lines, $match_index + $context_lines + 1)
+    # 該当行のインデックスを探索
+    target_idx = next(
+        (i for i, line in enumerate(lines) if search_word in line), None
+    )
+    if target_idx is None:
+        raise ValueError(
+            f"ファイル内に指定文字列が見つかりませんでした: '{search_word}'"
+        )
 
-    # 4. 前後行を切り出して返却
-    ${result_lines} =   Evaluate    $lines[$start_idx:$end_idx]
-    
-    # ログ確認用に出力（改行で結合）
-    ${preview} =        Evaluate    "\\n".join($result_lines)
-    Log    取得したコンテキスト範囲（${start_idx + 1}行目〜${end_idx}行目）:\n${preview}
+    # 前後N行の範囲を安全に計算してスライス
+    start_idx = max(0, target_idx - context_lines)
+    end_idx = min(len(lines), target_idx + context_lines + 1)
 
-    RETURN    ${result_lines}
+    return lines[start_idx:end_idx]
