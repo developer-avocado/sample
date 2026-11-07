@@ -21,3 +21,10 @@ Trigger Cloud Timer Function Immediately
 
     # 4. POSTリクエストを送信（成功時は 202 Accepted が返る）
     ${response}=   POST    ${url}    json=${body}    headers=${headers}    expected_status=202
+
+
+az rest --method post \
+  --url "https://<関数アプリ名>.azurewebsites.net/admin/functions/<関数名>" \
+  --headers "Content-Type=application/json" "x-functions-key=<_masterキー>" \
+  --body '{"input": ""}' \
+  --skip-authorization-header
