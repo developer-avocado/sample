@@ -1,0 +1,60 @@
+from pathlib import Path
+import io
+import json
+
+BASE_DIR = Path(__file__).parent
+
+
+class S3ClientMock:
+    """S3クライアントのモック"""
+    def get_object(self, Bucket: str, Key: str, **kwargs):
+        # 同一階層の .zst ファイルをバイナリとして直接読み込む
+        filename = Path(Key).name
+        target_file = BASE_DIR / filename
+
+        if not target_file.exists():
+            target_file = BASE_DIR / "sample.zst"
+
+        data = target_file.read_bytes()
+        # response["Body"].read() が動くよう io.BytesIO でラップして返却
+        return {"Body": io.BytesIO(data)}
+
+
+class SQSClientMock:
+    """SQSクライアントのモック"""
+    def receive_message(self, QueueUrl: str, **kwargs):
+        json_file = BASE_DIR / "sqs_messages.json"
+        if json_file.exists():
+            raw = json_file.read_text(encoding="utf-8")
+            messages = json.loads(raw)
+        else:
+            messages = ['{"task_id": 101, "status": "test"}']
+
+        return {
+            "Messages": [
+                {"MessageId": str(i), "ReceiptHandle": f"h_{i}", "Body": msg}
+                for i, msg in enumerate(messages)
+            ]
+        }
+
+    def delete_message(self, QueueUrl: str, ReceiptHandle: str, **kwargs):
+        return {}
+
+
+def client(service_name: str, *args, **kwargs):
+    """boto3.client(...) 用のエントリーポイント"""
+    if service_name == "s3":
+        return S3ClientMock()
+    elif service_name == "sqs":
+        return SQSClientMock()
+    raise ValueError(f"Service not supported: {service_name}")
+
+
+class SessionMock:
+    """boto3.Session(...) や session.client(...) が使われている場合に対応"""
+    def client(self, service_name: str, *args, **kwargs):
+        return client(service_name, *args, **kwargs)
+
+
+def Session(*args, **kwargs):
+    return SessionMock()
