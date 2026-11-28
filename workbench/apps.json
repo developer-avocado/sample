@@ -1,0 +1,150 @@
+{
+  "title": "業務ツールボックス",
+  "apps": [
+    {
+      "id": "todo",
+      "name": "ToDo",
+      "icon": "✅",
+      "kind": "標準ライブラリ",
+      "description": "期限・繰り返し・優先度つきのタスク管理。カレンダー表示、バックアップ付き。",
+      "cwd": "apps/todo",
+      "command": [
+        "{python}",
+        "todo.py",
+        "{port}"
+      ],
+      "port": 8401
+    },
+    {
+      "id": "notes",
+      "name": "メモ",
+      "icon": "🗒️",
+      "kind": "標準ライブラリ",
+      "description": "Markdown対応のメモ。[[リンク]]でメモ同士をつなぎ、バックリンク・グラフ・タグ・全文検索で思考を整理。",
+      "cwd": "apps/notes",
+      "command": [
+        "{python}",
+        "notes.py",
+        "--port",
+        "{port}"
+      ],
+      "port": 8409
+    },
+    {
+      "id": "chat_templates",
+      "name": "チャット定型文",
+      "icon": "💬",
+      "kind": "標準ライブラリ",
+      "description": "チャット・メール返信の定型文を、差し込み項目つきでワンクリックコピー。",
+      "cwd": "apps/chat_templates",
+      "command": [
+        "{python}",
+        "chat_templates.py",
+        "--port",
+        "{port}"
+      ],
+      "port": 8402
+    },
+    {
+      "id": "clipboard_history",
+      "name": "クリップボード履歴",
+      "icon": "📋",
+      "kind": "Streamlit",
+      "description": "コピーしたテキストを最大50件まで自動記録。※開いている間だけ記録します。",
+      "cwd": "apps/clipboard_history",
+      "command": [
+        "{python}",
+        "-m",
+        "streamlit",
+        "run",
+        "clipboard_history_app.py",
+        "--server.port",
+        "{port}",
+        "--server.address",
+        "127.0.0.1",
+        "--server.headless",
+        "true",
+        "--browser.gatherUsageStats",
+        "false"
+      ],
+      "port": 8405,
+      "requires": {
+        "streamlit": "streamlit",
+        "pyperclip": "pyperclip"
+      }
+    },
+    {
+      "id": "image_clipboard",
+      "name": "画像クリップボード履歴",
+      "icon": "🖼️",
+      "kind": "Streamlit",
+      "description": "コピーした画像を最大50枚まで自動記録。選択保存・一括保存(ZIP)に対応。再コピーはWindows+pywin32が必要です。",
+      "cwd": "apps/image_clipboard",
+      "command": [
+        "{python}",
+        "-m",
+        "streamlit",
+        "run",
+        "image_clipboard_app.py",
+        "--server.port",
+        "{port}",
+        "--server.address",
+        "127.0.0.1",
+        "--server.headless",
+        "true",
+        "--browser.gatherUsageStats",
+        "false"
+      ],
+      "port": 8406,
+      "requires": {
+        "streamlit": "streamlit",
+        "pillow": "PIL"
+      }
+    },
+    {
+      "id": "window_manager",
+      "name": "ウィンドウマネージャー",
+      "icon": "🪟",
+      "kind": "標準ライブラリ (Windows)",
+      "description": "ウィンドウの整列・最前面・透明度・レイアウト保存・自動ルール。Windows以外ではデモ表示。",
+      "cwd": "apps/window_manager",
+      "command": [
+        "{python}",
+        "window_manager.py",
+        "--port",
+        "{port}"
+      ],
+      "port": 8407
+    },
+    {
+      "id": "shortcuts",
+      "name": "ショートカット",
+      "icon": "⌨️",
+      "kind": "標準ライブラリ (Windows)",
+      "description": "ショートカットキーで、日時・定型文の入力、ファイルやURLを開く、プログラム起動、クリップボード加工貼り付け。Windowsで動作。",
+      "cwd": "apps/shortcuts",
+      "command": [
+        "{python}",
+        "shortcuts.py",
+        "--port",
+        "{port}"
+      ],
+      "port": 8408
+    },
+    {
+      "id": "converter",
+      "name": "変換ツール",
+      "icon": "🔄",
+      "kind": "標準ライブラリ",
+      "description": "CSV/JSON/XML/YAMLなどの相互変換と、Protobufバイナリの解析→CSV出力。",
+      "cwd": "apps/converter",
+      "command": [
+        "{python}",
+        "converter.py",
+        "--port",
+        "{port}"
+      ],
+      "port": 8410
+    }
+  ]
+}

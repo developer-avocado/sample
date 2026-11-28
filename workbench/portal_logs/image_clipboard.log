@@ -1,0 +1,8 @@
+
+=== 2026-11-28 10:53:37 起動: C:\Users\zenso\AppData\Local\Programs\Python\Python312\python.exe -m streamlit run image_clipboard_app.py --server.port 8406 --server.address 127.0.0.1 --server.headless true --browser.gatherUsageStats false ===
+2026-11-28 10:53:39.575 Uvicorn server started on 127.0.0.1:8406
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://127.0.0.1:8406
+
